@@ -1,7 +1,8 @@
-from src.enums import InventoryResource
+from src.core.enums import InventoryResource
 from src.settings import TILE_SIZE, SCALE_FACTOR, LAYERS
 import pygame
-from src.sprites import Sprite, Plant
+from src.sprites.base_classes import Sprite
+from src.sprites.objects import Plant
 from random import choice
 
 

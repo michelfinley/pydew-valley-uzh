@@ -1,15 +1,13 @@
-import sys
 import pygame  # noqa
 
+from src.core import support
 from src import settings
 from src.settings import SCREEN_WIDTH, SCREEN_HEIGHT
-from src.enums import GameState
-from src import support
-from src import level
+from src.core.enums import GameState
 
-from src.level import Level
-from src.dialog import DialogueManager, prepare_tb_image
-from src.menus import MainMenu, PauseMenu, SettingsMenu, ShopMenu
+from src.scenes.level import Level
+from src.dialogues.dialog import prepare_tb_image, DialogueManager
+from src.menu.menus import MainMenu, PauseMenu, SettingsMenu
 
 
 class Game:

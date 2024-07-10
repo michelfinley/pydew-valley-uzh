@@ -3,7 +3,7 @@ from src.settings import (
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
 )
-from src.enums import InventoryResource
+from src.core.enums import InventoryResource
 
 
 # TODO: Refactor this class

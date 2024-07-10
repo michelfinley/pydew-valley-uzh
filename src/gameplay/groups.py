@@ -5,7 +5,7 @@ from src.settings import (
     SCREEN_WIDTH,
     Coordinate,
 )
-from src.dialog import TextBox
+from src.dialogues.dialog import TextBox
 
 
 # TODO : we could replace this with pygame.sprite.LayeredUpdates, as that

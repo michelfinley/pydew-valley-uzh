@@ -1,6 +1,6 @@
-from .support import resource_path
-from .settings import CHARS_PER_LINE, TB_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT, TB_LAYER
-from .timer import Timer
+from ..core.support import resource_path
+from src.settings import CHARS_PER_LINE, TB_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT, TB_LAYER
+from ..core.timer import Timer
 import pygame
 import json
 from jsmin import jsmin  # JSON minifier function (removes comments, notably)

@@ -7,22 +7,23 @@ from pathfinding.core.grid import Grid as PF_Grid
 from pathfinding.finder.a_star import AStarFinder as PF_AStarFinder
 
 from src import settings
-from src.groups import AllSprites
-from src.soil import SoilLayer
-from src.transition import Transition
-from random import randint
-from src.sky import Sky, Rain
-from src.overlay import Overlay
-from src.shop import Menu
-from src.sprites import (
-    AnimatedSprite,
-    ParticleSprite,
-    Tree,
+from src.gameplay.groups import AllSprites
+from src.gameplay.soil import SoilLayer
+from src.sprites.base_classes import (
     Sprite,
-    Player,
-    NPC, NPCBehaviourMethods,
+    ParticleSprite,
+    AnimatedSprite,
 )
-from src.enums import FarmingTool, GameState
+from src.npc.npc import NPC
+from src.npc.npc_behaviour import NPCBehaviourMethods
+from src.sprites.objects import Tree
+from src.sprites.player import Player
+from src.scenes.transition import Transition
+from random import randint
+from src.gameplay.sky import Sky, Rain
+from src.scenes.overlay import Overlay
+from src.scenes.shop import Menu
+from src.core.enums import FarmingTool, GameState
 from src.settings import (
     TILE_SIZE,
     SCALE_FACTOR,
