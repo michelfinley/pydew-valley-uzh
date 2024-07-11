@@ -5,7 +5,7 @@ from typing import Callable
 import pygame
 
 from src import settings
-from src.core.enums import FarmingTool, ItemToUse
+from src.enums import FarmingTool, ItemToUse
 
 from src.npc.behaviour_base import Context as BehaviourContext, Selector, Sequence, Condition, Action
 from src.npc.npc_base import NPCBase

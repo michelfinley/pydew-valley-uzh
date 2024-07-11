@@ -2,9 +2,9 @@ import pygame
 from pygame import Vector2
 from pygame.mouse import get_pressed as mouse_buttons, get_pos as mouse_pos
 
-from src.core.support import save_data, load_data
-from src.menu.base_classes import Description
-from src.menu.components import Slider
+from src.support import save_data, load_data
+from src.GUI.base_classes import Description
+from src.GUI.components import Slider
 
 
 class KeySetup:

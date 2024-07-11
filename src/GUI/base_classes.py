@@ -2,9 +2,9 @@ import sys
 
 import pygame
 
-from src.core.enums import GameState
+from src.enums import GameState
 from src.settings import SCREEN_WIDTH, SCREEN_HEIGHT
-from src.menu.components import Button
+from src.GUI.components import Button
 
 
 # -------  Menu ------- #

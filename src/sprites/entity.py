@@ -4,7 +4,7 @@ from typing import Callable
 import pygame
 
 from src import settings
-from src.core.enums import FarmingTool, InventoryResource, ItemToUse
+from src.enums import FarmingTool, InventoryResource, ItemToUse
 from src.settings import LAYERS
 from src.sprites.base_classes import CollideableSprite
 

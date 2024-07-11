@@ -7,7 +7,7 @@ from pathfinding.core.grid import Grid as PF_Grid
 from pathfinding.finder.a_star import AStarFinder as PF_AStarFinder
 
 from src import settings
-from src.gameplay.groups import AllSprites
+from src.sprites.groups import AllSprites
 from src.gameplay.soil import SoilLayer
 from src.sprites.base_classes import (
     Sprite,
@@ -23,7 +23,7 @@ from random import randint
 from src.gameplay.sky import Sky, Rain
 from src.scenes.overlay import Overlay
 from src.scenes.shop import Menu
-from src.core.enums import FarmingTool, GameState
+from src.enums import FarmingTool, GameState
 from src.settings import (
     TILE_SIZE,
     SCALE_FACTOR,

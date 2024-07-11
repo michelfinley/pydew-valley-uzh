@@ -6,7 +6,7 @@ from pathfinding.core.grid import Grid as PF_Grid
 from pathfinding.finder.a_star import AStarFinder as PF_AStarFinder
 
 from src import settings
-from src.core.enums import InventoryResource
+from src.enums import InventoryResource
 from src.npc.npc_base import NPCBase, NPCState
 from src.settings import SCALE_FACTOR
 from src.npc.npc_behaviour import NPCBehaviourMethods, NPCBehaviourContext

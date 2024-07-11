@@ -1,4 +1,4 @@
-from src.core.enums import InventoryResource
+from src.enums import InventoryResource
 from src.settings import TILE_SIZE, SCALE_FACTOR, LAYERS
 import pygame
 from src.sprites.base_classes import Sprite

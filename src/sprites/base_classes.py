@@ -1,6 +1,6 @@
 import pygame
 
-from src.core import timer
+from src import timer
 from src.settings import LAYERS
 
 

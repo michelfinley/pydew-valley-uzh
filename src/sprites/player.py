@@ -2,10 +2,10 @@ from typing import Callable
 
 import pygame
 
-from src.core import savefile
-from src import settings
-from src.core.enums import FarmingTool, InventoryResource, ItemToUse
-from src.menu.menus import PauseMenu, SettingsMenu
+from src import settings, savefile
+from src.enums import FarmingTool, InventoryResource, ItemToUse
+from src.scenes.pause_menu import PauseMenu
+from src.scenes.settings_menu import SettingsMenu
 from src.settings import SCALE_FACTOR
 from src.sprites.entity import Entity
 

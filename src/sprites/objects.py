@@ -2,8 +2,8 @@ import random
 
 import pygame
 
-from src.core import timer, support
-from src.core.enums import InventoryResource
+from src import support, timer
+from src.enums import InventoryResource
 
 from src.settings import LAYERS, SCALE_FACTOR, GROW_SPEED, APPLE_POS
 from src.sprites.base_classes import CollideableSprite, Sprite

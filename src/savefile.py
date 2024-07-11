@@ -1,6 +1,6 @@
 import json
-from .enums import InventoryResource, FarmingTool
-from .support import resource_path
+from src.enums import InventoryResource, FarmingTool
+from src.support import resource_path
 from jsmin import jsmin
 
 CONVERT_TO_FT = "__FarmingTool__"
