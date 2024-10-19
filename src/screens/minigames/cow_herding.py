@@ -229,6 +229,7 @@ class CowHerding(Minigame):
                 cow.conditional_behaviour_tree = None
                 cow.continuous_behaviour_tree = None
             self._completion_time = self._minigame_time
+            self._opponent_side_script.total_time = self._completion_time
             self.scoreboard.setup(
                 self._completion_time,
                 self._player_side.cows_herded_in,
