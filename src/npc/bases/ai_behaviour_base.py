@@ -33,6 +33,8 @@ class AIBehaviourBase(Entity, ABC):
 
     _script: AIScriptedPath | None
 
+    __on_start_moving_always_funcs: list[Callable[[], None]]
+
     __on_path_abortion_funcs: list[Callable[[], None]]
     __on_path_completion_funcs: list[Callable[[], None]]
 

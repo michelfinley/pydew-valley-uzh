@@ -165,7 +165,7 @@ class NPC(NPCBase):
     # NPC sickness
     def get_sick(self):
         # if wearing goggles, the probability of getting sick is halved
-        self.is_sick = self.probability_to_get_sick < random.random()
+        pass  # self.is_sick = self.probability_to_get_sick < random.random()
 
     def die(self):
         self.is_dead = True

@@ -33,6 +33,8 @@ class AIBehaviour(AIBehaviourBase, ABC):
         self.conditional_behaviour_tree = None
         self.continuous_behaviour_tree = None
 
+        self.__on_start_moving_always_funcs = []
+
         self.__on_path_abortion_funcs = []
         self.__on_path_completion_funcs = []
 
@@ -55,6 +57,16 @@ class AIBehaviour(AIBehaviourBase, ABC):
     @continuous_behaviour_tree.setter
     def continuous_behaviour_tree(self, value: NodeWrapper | None):
         self._continuous_behaviour_tree = value
+
+    def on_start_moving_always(self, func: Callable[[], None]):
+        self.__on_start_moving_always_funcs.append(func)
+        return
+
+    def start_moving(self):
+        for func in self.__on_start_moving_always_funcs:
+            func()
+
+        return
 
     def on_path_abortion(self, func: Callable[[], None]):
         self.__on_path_abortion_funcs.append(func)
@@ -196,6 +208,7 @@ class AIBehaviour(AIBehaviourBase, ABC):
         if not self.pf_path:
             return False
 
+        self.start_moving()
         return True
 
     def create_step_to_coord(self, coord: tuple[float, float]) -> bool:

@@ -520,7 +520,7 @@ def will_cheer(context: NPCIndividualContext) -> bool:
     1 in 500 chance to cheer instead of nothing
     :return: 1/500 true | 499/500 false
     """
-    return random.randint(0, 499) == 0
+    return True  # random.randint(0, 499) == 0
 
 
 def cheer(context: NPCIndividualContext) -> bool:

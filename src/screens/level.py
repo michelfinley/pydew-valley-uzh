@@ -12,7 +12,8 @@ from src.camera.camera_target import CameraTarget
 from src.camera.quaker import Quaker
 from src.camera.zoom_manager import ZoomManager
 from src.enums import FarmingTool, GameState, Map, ScriptedSequenceType, StudyGroup
-from src.events import DIALOG_ADVANCE, DIALOG_SHOW, START_QUAKE, post_event
+from src.events import DIALOG_ADVANCE, DIALOG_SHOW, START_QUAKE, post_event, \
+    MINIGAME_ADD_MOVE
 from src.exceptions import GameMapWarning
 from src.groups import AllSprites, PersistentSpriteGroup
 from src.gui.interface.emotes import NPCEmoteManager, PlayerEmoteManager
@@ -36,6 +37,7 @@ from src.settings import (
     SCREEN_WIDTH,
     MapDict,
     SoundDict,
+    SCALE_FACTOR,
 )
 from src.sprites.base import Sprite
 from src.sprites.drops import DropsManager
@@ -46,6 +48,26 @@ from src.sprites.setup import ENTITY_ASSETS
 from src.support import load_data, map_coords_to_tile, resource_path, save_data
 
 _TO_PLAYER_SPEED_INCREASE_THRESHOLD = 200
+
+
+class CameraTracker:
+    def __init__(self, controls):
+        self.rect = pygame.Rect()
+        self.rect.center = (400 * SCALE_FACTOR, 288 * SCALE_FACTOR)
+        self.direction = pygame.Vector2()
+        self.speed = 400
+
+        self.controls = controls
+
+    def update(self, dt: float):
+        self.direction.x = int(self.controls.RIGHT.hold) - int(self.controls.LEFT.hold)
+        self.direction.y = int(self.controls.DOWN.hold) - int(self.controls.UP.hold)
+
+        if self.direction:
+            self.direction = self.direction.normalize()
+
+        self.rect.x += self.direction.x * self.speed * dt
+        self.rect.y += self.direction.y * self.speed * dt
 
 
 class Level:
@@ -210,6 +232,10 @@ class Level:
 
         # level
         self.current_level = 3
+
+        self.highlight_tile = (0, 0)
+
+        self.camera_tracker = CameraTracker(self.player.controls)
 
     def load_map(self, game_map: Map, from_map: str = None):
         # prepare level state for new map
@@ -712,8 +738,8 @@ class Level:
     def draw_pf_overlay(self):
         if self.show_pf_overlay:
             offset = pygame.Vector2(0, 0)
-            offset.x = -(self.get_camera_center()[0] - SCREEN_WIDTH / 2)
-            offset.y = -(self.get_camera_center()[1] - SCREEN_HEIGHT / 2)
+            offset.x = -(self.camera_tracker.rect.x - SCREEN_WIDTH / 2)
+            offset.y = -(self.camera_tracker.rect.y - SCREEN_HEIGHT / 2)
 
             if AIData.setup:
                 for y in range(len(AIData.Matrix)):
@@ -730,8 +756,8 @@ class Level:
             for npe in self.game_map.animals + self.game_map.npcs:
                 if npe.pf_path:
                     offset = pygame.Vector2(0, 0)
-                    offset.x = -(self.player.rect.centerx - SCREEN_WIDTH / 2)
-                    offset.y = -(self.player.rect.centery - SCREEN_HEIGHT / 2)
+                    offset.x = -(self.camera_tracker.rect.x - SCREEN_WIDTH / 2)
+                    offset.y = -(self.camera_tracker.rect.y - SCREEN_HEIGHT / 2)
                     for i in range(len(npe.pf_path)):
                         start_pos = (
                             (npe.pf_path[i][0]) * SCALED_TILE_SIZE + offset.x,
@@ -754,7 +780,7 @@ class Level:
     # endregion
 
     def draw_overlay(self):
-        self.sky.display(self.current_level)
+        # self.sky.display(self.current_level)
         self.overlay.display()
 
     def draw(self, dt: float, move_things: bool):
@@ -768,6 +794,18 @@ class Level:
         self.draw_pf_overlay()
         self.draw_hitboxes()
         self.draw_overlay()
+
+        offset = pygame.Vector2(0, 0)
+        offset.x = -(self.camera_tracker.rect.x - SCREEN_WIDTH / 2)
+        offset.y = -(self.camera_tracker.rect.y - SCREEN_HEIGHT / 2)
+
+        self.display_surface.blit(
+            self.pf_overlay_non_walkable,
+            (
+                self.highlight_tile[0] * SCALED_TILE_SIZE + offset.x,
+                self.highlight_tile[1] * SCALED_TILE_SIZE + offset.y,
+            ),
+        )
 
         if self.current_minigame and self.current_minigame.running:
             self.current_minigame.draw()
@@ -791,6 +829,24 @@ class Level:
         self.check_map_exit()
         self.check_outgroup_logic()
 
+        if self.player.controls.USE.click:
+            offset = pygame.Vector2(0, 0)
+            offset.x = -self.camera.state.x / SCALED_TILE_SIZE
+            offset.y = -self.camera.state.y / SCALED_TILE_SIZE
+
+            mouse_pos = pygame.mouse.get_pos()
+            mouse_pos = (
+                mouse_pos[0] / SCALED_TILE_SIZE,
+                mouse_pos[1] / SCALED_TILE_SIZE,
+            )
+
+            self.highlight_tile = (
+                int(mouse_pos[0] + offset.x),
+                int(mouse_pos[1] + offset.y),
+            )
+
+            post_event(MINIGAME_ADD_MOVE, coord=self.highlight_tile)
+
         if self.current_minigame and self.current_minigame.running:
             self.current_minigame.update(dt)
 
@@ -806,11 +862,9 @@ class Level:
             self.update_cutscene(dt)
             self.quaker.update_quake(dt)
 
-            self.camera.update(
-                self.cutscene_animation
-                if self.cutscene_animation.active
-                else self.player
-            )
+            self.camera_tracker.update(dt)
+
+            self.camera.update(self.camera_tracker)
 
             self.zoom_manager.update(
                 (
@@ -821,5 +875,5 @@ class Level:
                 dt,
             )
 
-            self.decay_health()
+            # self.decay_health()
         self.draw(dt, move_things)

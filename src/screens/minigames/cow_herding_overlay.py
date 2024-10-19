@@ -268,10 +268,9 @@ class _CowHerdingOverlay:
 
     def draw_objective(
         self,
-        own_cows_total: int,
-        own_cows_herded_in: int,
         opp_cows_total: int,
         opp_cows_herded_in: int,
+        completion_time: float
     ):
         box_top_right = (SCREEN_WIDTH, 0)
         padding = 12
@@ -281,17 +280,15 @@ class _CowHerdingOverlay:
             Linebreak(),
             TextChunk("Herd the cows into the barn!", self.font_objective),
             Linebreak((0, 32)),
-            TextChunk("Blaukappen (ingroup) progress:", self.font_objective),
-            Linebreak(),
-            TextChunk(
-                f"({own_cows_herded_in}/{own_cows_total}) Cows in the barn",
-                self.font_objective,
-            ),
-            Linebreak((0, 32)),
             TextChunk("Hornlinge (outgroup) progress:", self.font_objective),
             Linebreak(),
             TextChunk(
                 f"({opp_cows_herded_in}/{opp_cows_total}) Cows in the barn",
+                self.font_objective,
+            ),
+            Linebreak(),
+            TextChunk(
+                f"Time needed: {round(completion_time, 2)}",
                 self.font_objective,
             ),
         )

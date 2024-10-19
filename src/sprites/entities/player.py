@@ -147,7 +147,7 @@ class Player(Character):
 
             if is_mouse_event:
                 is_event_active = mouse_pressed[control.control_value - 1]
-                control.click = is_event_active
+                control.click = is_event_active and not control.hold
                 control.hold = is_event_active
             else:
                 control.click = keys_just_pressed[control.control_value]
@@ -174,14 +174,14 @@ class Player(Character):
             and not self.blocked
             and not self.emote_manager.emote_wheel.visible
         ):
-            self.direction.x = int(self.controls.RIGHT.hold) - int(
+            """self.direction.x = int(self.controls.RIGHT.hold) - int(
                 self.controls.LEFT.hold
             )
 
             self.direction.y = int(self.controls.DOWN.hold) - int(self.controls.UP.hold)
 
             if self.direction:
-                self.direction = self.direction.normalize()
+                self.direction = self.direction.normalize()"""
 
             # tool switch
             if self.controls.NEXT_TOOL.click:
@@ -193,12 +193,12 @@ class Player(Character):
                 )
 
             # tool use
-            if self.controls.USE.click:
+            """if self.controls.USE.click:
                 self.tool_active = True
                 self.frame_index = 0
                 self.direction = pygame.Vector2()
                 if self.current_tool.is_swinging_tool():
-                    self.sounds["swing"].play()
+                    self.sounds["swing"].play()"""
 
             # seed switch
             if self.controls.NEXT_SEED.click:

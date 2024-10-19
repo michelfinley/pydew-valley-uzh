@@ -6,6 +6,22 @@ This expanded version will be used by the [University of Zurich's Department of 
 
 For more information, please contact s.kittelberger[at]psychologie.uzh.ch.
 
+___
+
+## This is a development modification of the game
+This mod simplifies the creation of scripted paths for the Cow Herding minigame
+
+- **Control the camera with the movement control keys (defaults to the arrow keys)**
+
+- **Reset the minigame (default: `[Y]`)**
+
+- **Reset the minigame and regenerate the random seed used for cow movement (default: `[X]`)**
+
+- **Save all entity movement on the opponents side since the last reset to a json file (default: `[C]`, saved at `data/npc_scripted_paths/cow_herding/[timestamp].json`)**
+  - Note: Only save after all movement has finished (i.e. all cows have finished their current path inside the barn, and the NPC has stopped moving) to ensure that all waypoints are getting saved as intended
+
+___
+
 ## Setup Instructions
 
 This project requires Python 3.12 or above.

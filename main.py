@@ -134,10 +134,10 @@ class Game:
             GameState.ROUND_END: self.round_menu,
             GameState.OUTGROUP_MENU: self.outgroup_menu,
         }
-        self.current_state = GameState.MAIN_MENU
+        self.current_state = GameState.PLAY
 
         # intro to in-group msg.
-        self.intro_txt_shown = False
+        self.intro_txt_shown = True
 
     def switch_state(self, state: GameState):
         self.current_state = state

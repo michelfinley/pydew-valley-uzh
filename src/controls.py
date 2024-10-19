@@ -106,6 +106,19 @@ class Controls(Control, Enum):
     DEDUG_PLAYER_TASK = (pygame.K_b, "Show Player Task")
     END_ROUND = (pygame.K_r, "Skip to End of Round")
 
+    MINIGAME_SCRIPT_RESET = (
+        pygame.K_y,
+        "[M] Reset script"
+    )
+    MINIGAME_SCRIPT_RESET_SEED = (
+        pygame.K_x,
+        "[M] Reset random seed"
+    )
+    MINIGAME_SCRIPT_SAVE = (
+        pygame.K_c,
+        "[M] Save script"
+    )
+
     @classmethod
     def as_dict(cls) -> dict[str, dict[str, str | int]]:
         """
