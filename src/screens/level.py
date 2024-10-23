@@ -151,7 +151,7 @@ class Level:
         # add additional sprites for scripted sequence "decide_tomato_or_corn"
         # extra sprites are fine, which sprites are actually shown on the wheel depends on emote_list param
         for frame in TOMATO_OR_CORN_LIST:
-            self._emotes[frame] = [self.frames["overlay"][frame]]
+            self._emotes[frame] = [self.frames["items"][frame]]
 
         self.player_emote_manager = PlayerEmoteManager(
             self._emotes, EMOTES_LIST, self.all_sprites
@@ -317,7 +317,6 @@ class Level:
                     collision_sprites=self.collision_sprites,
                     overlay=self.overlay,
                     sounds=self.sounds,
-                    get_camera_center=self.get_camera_center,
                 )
             )
 
@@ -491,6 +490,9 @@ class Level:
         debug_player_receives_necklace = (
             self.player.controls.DEBUG_PLAYER_RECEIVES_NECKLACE.control_value
         )
+        debug_player_receives_necklace_bd = (
+            self.player.controls.DEBUG_PLAYER_RECEIVES_NECKLACE_BD.control_value
+        )
         debug_npc_receives_necklace = (
             self.player.controls.DEBUG_NPC_RECEIVES_NECKLACE.control_value
         )
@@ -529,6 +531,11 @@ class Level:
             if event.key == debug_player_receives_necklace:
                 self.start_scripted_sequence(
                     ScriptedSequenceType.PLAYER_RECEIVES_NECKLACE
+                )
+                return True
+            if event.key == debug_player_receives_necklace_bd:
+                self.start_scripted_sequence(
+                    ScriptedSequenceType.PLAYER_RECEIVES_NECKLACE_BD
                 )
                 return True
             if event.key == debug_npc_receives_necklace:
@@ -619,6 +626,8 @@ class Level:
         if sequence_type == ScriptedSequenceType.PLAYER_RECEIVES_HAT:
             npc.has_hat = True
         elif sequence_type == ScriptedSequenceType.PLAYER_RECEIVES_NECKLACE:
+            npc.has_necklace = True
+        elif sequence_type == ScriptedSequenceType.PLAYER_RECEIVES_NECKLACE_BD:
             npc.has_necklace = True
         elif sequence_type == ScriptedSequenceType.NPC_RECEIVES_NECKLACE:
             npc.has_necklace = True
@@ -719,11 +728,8 @@ class Level:
         self.cutscene_animation.set_current_animation(DEFAULT_ANIMATION_NAME)
         self.cutscene_animation.is_end_condition_met = lambda: True
 
-    def get_camera_center(self):
-        if self.cutscene_animation:
-            return self.cutscene_animation.get_current_position()
-
-        return self.player.rect.center
+    def get_camera_pos(self):
+        return self.camera.state.topleft
 
     def start_transition(self):
         self.player.blocked = True
@@ -790,9 +796,7 @@ class Level:
     # region debug-overlays
     def draw_hitboxes(self):
         if self.show_hitbox_active:
-            offset = pygame.Vector2(0, 0)
-            offset.x = -(self.get_camera_center()[0] - SCREEN_WIDTH / 2)
-            offset.y = -(self.get_camera_center()[1] - SCREEN_HEIGHT / 2)
+            offset = pygame.Vector2(self.get_camera_pos())
 
             for sprite in self.collision_sprites:
                 rect = sprite.rect.copy()
@@ -830,9 +834,7 @@ class Level:
 
     def draw_pf_overlay(self):
         if self.show_pf_overlay:
-            offset = pygame.Vector2(0, 0)
-            offset.x = -(self.get_camera_center()[0] - SCREEN_WIDTH / 2)
-            offset.y = -(self.get_camera_center()[1] - SCREEN_HEIGHT / 2)
+            offset = pygame.Vector2(self.get_camera_pos())
 
             if AIData.setup:
                 for y in range(len(AIData.Matrix)):
