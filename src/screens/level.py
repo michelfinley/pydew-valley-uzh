@@ -14,10 +14,18 @@ from src.camera.quaker import Quaker
 from src.camera.zoom_manager import ZoomManager
 from src.controls import Controls
 from src.enums import FarmingTool, GameState, Map, ScriptedSequenceType, StudyGroup
-from src.events import DIALOG_ADVANCE, DIALOG_SHOW, START_QUAKE, post_event
+from src.events import (
+    DIALOG_ADVANCE,
+    DIALOG_SHOW,
+    EMOTE_WHEEL_CLOSE,
+    EMOTE_WHEEL_OPEN,
+    EMOTE_WHEEL_SUBMIT,
+    START_QUAKE,
+    post_event,
+)
 from src.exceptions import GameMapWarning
 from src.groups import AllSprites, PersistentSpriteGroup
-from src.gui.interface.emotes import NPCEmoteManager, PlayerEmoteManager
+from src.gui.interface.emotes import EmoteManager, EmoteWheel
 from src.gui.scene_animation import SceneAnimation
 from src.npc.npc import NPC
 from src.npc.setup import AIData
@@ -81,9 +89,8 @@ class Level:
 
     # emotes
     _emotes: dict
-    player_emote_manager: PlayerEmoteManager
-    backup_emote_mgr: PlayerEmoteManager
-    npc_emote_manager: NPCEmoteManager
+    emote_manager: EmoteManager
+    emote_wheel: EmoteWheel
 
     player: Player
     prev_player_pos: tuple[int, int]
@@ -154,11 +161,8 @@ class Level:
         for frame in TOMATO_OR_CORN_LIST:
             self._emotes[frame] = [self.frames["overlay"][frame]]
 
-        self.player_emote_manager = PlayerEmoteManager(
-            self._emotes, EMOTES_LIST, self.all_sprites
-        )
-        self.backup_emote_mgr = self.player_emote_manager
-        self.npc_emote_manager = NPCEmoteManager(self._emotes, self.all_sprites)
+        self.emote_manager = EmoteManager(self._emotes, self.all_sprites)
+        self.emote_wheel = EmoteWheel(self.emote_manager, EMOTES_LIST, self.all_sprites)
 
         self.controls = Controls
 
@@ -171,7 +175,7 @@ class Level:
             apply_tool=self.apply_tool,
             plant_collision=self.plant_collision,
             interact=self.interact,
-            emote_manager=self.player_emote_manager,
+            emote_manager=self.emote_manager,
             sounds=self.sounds,
             hp=0,
             bathstat=False,
@@ -249,8 +253,7 @@ class Level:
             bush_sprites=self.bush_sprites,
             player_exit_warps=self.player_exit_warps,
             player=self.player,
-            player_emote_manager=self.player_emote_manager,
-            npc_emote_manager=self.npc_emote_manager,
+            emote_manager=self.emote_manager,
             soil_manager=self.soil_manager,
             apply_tool=self.apply_tool,
             plant_collision=self.plant_collision,
@@ -505,9 +508,54 @@ class Level:
         elif event.type == pygame.MOUSEBUTTONUP:
             self.controls.update_control_state(event.button, False)
 
+        elif event.type == EMOTE_WHEEL_OPEN:
+            self.player.direction.update((0, 0))
+            self.player.blocked = True
+            player_pos = self.player.rect.center
+            distance_to_player = 5 * SCALED_TILE_SIZE
+            npc_to_focus = None
+            for npc in self.game_map.npcs:
+                current_distance = (
+                    (player_pos[0] - npc.rect.center[0]) ** 2
+                    + (player_pos[1] - npc.rect.center[1]) ** 2
+                ) ** 0.5
+                if current_distance < distance_to_player:
+                    distance_to_player = current_distance
+                    npc_to_focus = npc
+            if npc_to_focus:
+                self.player.focus_entity(npc_to_focus)
+
+        elif event.type == EMOTE_WHEEL_CLOSE:
+            self.player.blocked = False
+            self.player.unfocus_entity()
+
+        elif event.type == EMOTE_WHEEL_SUBMIT:
+            self.emote_manager.show_emote(self.player, self.emote_wheel.current_emote)
+            if self.player.focused_entity:
+                print(1)
+                npc = self.player.focused_entity
+                npc.abort_path()
+
+                self.emote_manager.show_emote(npc, event.emote)
+            self.emote_wheel.close()
+
         return False
 
     def handle_controls(self):
+        if self.controls.EMOTE_WHEEL.click and (
+            self.emote_wheel.is_open or not self.player.blocked
+        ):
+            self.emote_wheel.toggle()
+
+        if self.emote_wheel.is_open:
+            if self.controls.RIGHT.click:
+                self.emote_wheel.emote_index += 1
+            if self.controls.LEFT.click:
+                self.emote_wheel.emote_index -= 1
+
+            if self.controls.USE.click or self.controls.INTERACT.click:
+                self.emote_wheel.submit()
+
         if self.controls.ADVANCE_DIALOG.click:
             post_event(DIALOG_ADVANCE)
 
@@ -633,24 +681,17 @@ class Level:
         if not self.game_map:
             return
 
-        if buy_list[0] not in self.player_emote_manager.emote_wheel._emotes:
+        if self.emote_wheel.current_emote_selection != buy_list:
             # check if emote was already displayed
-            # store current EmoteManager
-            self.backup_emote_mgr = self.player.emote_manager
-            # create and assign new EmoteManager with only 2 options to select from
-            self.player_emote_manager = PlayerEmoteManager(
-                self._emotes, buy_list, self.all_sprites
-            )
-            self.player.emote_manager = self.player_emote_manager
-            self.game_map.player_emote_manager = self.player_emote_manager
-            self.game_map._setup_emote_interactions()
+            # push a new emote selection to the EmoteWheel with only 2 options to select from
+            self.emote_wheel.push_emote_selection(buy_list)
             # show EmoteWheel
             # self.player.blocked = True
-            self.player_emote_manager.toggle_emote_wheel()
+            self.emote_wheel.open()
             # still block the Scripted Sequence from finishing, until user makes selection
         else:
-            if self.player_emote_manager.emote_wheel.visible:
-                # EmoteWheel is still displayed, waiting for his vote
+            if self.emote_wheel.is_open:
+                # EmoteWheel is still displayed, waiting for their vote
                 return
             else:
                 # Player has voted
@@ -658,7 +699,7 @@ class Level:
                 total_votes = 1
                 # how many Characters voted for the first option
                 first_item_votes = 0
-                players_vote = self.player_emote_manager.emote_wheel._current_emote
+                players_vote = self.emote_wheel.current_emote
                 if players_vote == buy_list[0]:
                     first_item_votes += 1
 
@@ -679,11 +720,8 @@ class Level:
                 winner_item = (
                     buy_list[0] if first_item_votes > total_votes / 2 else buy_list[1]
                 )
-                # restore backup EmoteManager
-                self.player_emote_manager = self.backup_emote_mgr
-                self.player.emote_manager = self.player_emote_manager
-                self.game_map.player_emote_manager = self.player_emote_manager
-                self.game_map._setup_emote_interactions()
+
+                self.emote_wheel.pop_emote_selection()
 
                 # immediately switch to a new dialog with vote results
                 dialog_name = f"scripted_sequence_buy_{winner_item}"
@@ -920,6 +958,7 @@ class Level:
                 self.all_sprites.update_blocked(dt)
             else:
                 self.all_sprites.update(dt)
+            self.emote_wheel.update_pos(self.player.rect.center)
             self.update_cutscene(dt)
             self.quaker.update_quake(dt)
 

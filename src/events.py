@@ -214,3 +214,7 @@ DIALOG_SHOW = create_custom_event_type("DIALOG_SHOW", dial=str)
 DIALOG_ADVANCE = create_custom_event_type("DIALOG_ADVANCE")
 
 START_QUAKE = create_custom_event_type("StartQuake", duration=float, debug=bool)
+
+EMOTE_WHEEL_OPEN = create_custom_event_type("EMOTE_WHEEL_OPEN")
+EMOTE_WHEEL_CLOSE = create_custom_event_type("EMOTE_WHEEL_CLOSE")
+EMOTE_WHEEL_SUBMIT = create_custom_event_type("EmoteWheelSubmit", emote=str)

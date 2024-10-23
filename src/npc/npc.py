@@ -6,7 +6,7 @@ from typing import Callable
 import pygame
 
 from src.enums import EntityState, FarmingTool, InventoryResource, Layer, StudyGroup
-from src.gui.interface.emotes import NPCEmoteManager
+from src.gui.interface.emotes import EmoteManager
 from src.npc.bases.npc_base import NPCBase
 from src.npc.behaviour.npc_behaviour_tree import NPCIndividualContext
 from src.overlay.soil import SoilManager
@@ -27,7 +27,7 @@ class NPC(NPCBase):
         apply_tool: Callable[[FarmingTool, tuple[float, float], Character], None],
         plant_collision: Callable[[Character], None],
         soil_manager: SoilManager,
-        emote_manager: NPCEmoteManager,
+        emote_manager: EmoteManager,
         tree_sprites: pygame.sprite.Group,
     ):
         self.emote_manager = emote_manager

@@ -1,5 +1,4 @@
 import math
-from abc import ABC
 from collections.abc import Callable
 
 import pygame
@@ -7,6 +6,12 @@ import pygame.gfxdraw
 
 from src.colors import SL_ORANGE_BRIGHT, SL_ORANGE_BRIGHTEST, SL_ORANGE_DARK
 from src.enums import Layer
+from src.events import (
+    EMOTE_WHEEL_CLOSE,
+    EMOTE_WHEEL_OPEN,
+    EMOTE_WHEEL_SUBMIT,
+    post_event,
+)
 from src.groups import PersistentSpriteGroup
 from src.gui.interface.emotes_base import EmoteBoxBase, EmoteManagerBase, EmoteWheelBase
 from src.settings import EMOTE_SIZE
@@ -104,14 +109,14 @@ class EmoteBox(EmoteBoxBase):
         self.timer.update()
 
 
-class EmoteManager(EmoteManagerBase, ABC):
+class EmoteManager(EmoteManagerBase):
     _emote_boxes: dict[int, EmoteBox]
 
     def __init__(
         self, emotes: dict[str, list[pygame.Surface]], *groups: pygame.sprite.Group
     ):
         """
-        Base class for all EmoteManagers
+        Manages emotes across entities
         :param groups: Sprite groups the emotes should belong to
         :param emotes: Dictionary of all emote names mapped to a list of their
                        animation frames
@@ -189,16 +194,6 @@ class EmoteManager(EmoteManagerBase, ABC):
             del self._emote_boxes[id(obj)]
 
 
-class NPCEmoteManager(EmoteManager):
-    def __init__(
-        self, emotes: dict[str, list[pygame.Surface]], *groups: pygame.sprite.Group
-    ):
-        """
-        EmoteManager for all NPCs
-        """
-        super().__init__(emotes, *groups)
-
-
 class EmoteWheel(EmoteWheelBase):
     def __init__(
         self,
@@ -208,15 +203,16 @@ class EmoteWheel(EmoteWheelBase):
     ):
         """
         The Player's emote selection wheel
-        :param emote_manager: The EmoteManager of the Player
+        :param emote_manager: The entity emote manager
+        :param emotes_list: The default emote selection the player should choose from
         """
         self._emote_manager = emote_manager
 
-        self._emotes = emotes_list
-        self.emote_index = 0
-        self.emotes_count = len(self._emotes)
-        self._current_emote = self._emotes[self.emote_index]
-        self._last_emote_index = None
+        self._default_emote_selection = emotes_list
+        self._emote_selection_stack = []
+
+        self._emote_index = 0
+        self._current_emote = self._default_emote_selection[self.emote_index]
 
         self._emote_separator_width = 4
         self._selected_emote_separator_width = 6
@@ -226,19 +222,21 @@ class EmoteWheel(EmoteWheelBase):
         self._outer_radius = 128
         self._center = (self._outer_radius + self._inner_radius) / 2
 
-        self._image = pygame.Surface(
-            (self._outer_radius * 2, self._outer_radius * 2), flags=pygame.SRCALPHA
-        )
-
-        self._setup_image()
+        self._update_emote_selection()
 
         super().__init__((0, 0), self._image.copy(), z=Layer.TEXT_BOX)
         for group in groups:
             group.add_persistent(self)
 
-        self.visible = False
+        self.close()
 
-    def _setup_image(self):
+    def _setup_emote_selection(self):
+        self.emotes_count = len(self.current_emote_selection)
+
+        self._image = pygame.Surface(
+            (self._outer_radius * 2, self._outer_radius * 2), flags=pygame.SRCALPHA
+        )
+
         background_surface = pygame.Surface(
             (self._outer_radius * 2, self._outer_radius * 2), flags=pygame.SRCALPHA
         )
@@ -253,10 +251,10 @@ class EmoteWheel(EmoteWheelBase):
 
         self._image.blit(background_surface, (0, 0))
 
-        for i in range(len(self._emotes)):
+        for i in range(len(self.current_emote_selection)):
             # draw lines as separators between the different emotes on the
             # selector wheel
-            deg = math.pi * 2 * i / len(self._emotes) - math.pi / 2
+            deg = math.pi * 2 * i / len(self.current_emote_selection) - math.pi / 2
             thickness = self._emote_separator_width
 
             # center_pos and length have to be slightly adjusted to be neither
@@ -273,11 +271,14 @@ class EmoteWheel(EmoteWheelBase):
 
             # increase degree by half the distance to the next emote,
             #  to get the center of the current emote in the selector wheel
-            deg = math.pi * 2 * (i + 0.5) / len(self._emotes) - math.pi / 2
+            deg = (
+                math.pi * 2 * (i + 0.5) / len(self.current_emote_selection)
+                - math.pi / 2
+            )
 
             # blit first frame of the emote as preview onto the selector wheel
             self._image.blit(
-                self._emote_manager.emotes[self._emotes[i]][0],
+                self._emote_manager.emotes[self.current_emote_selection[i]][0],
                 (
                     self._outer_radius - EMOTE_SIZE / 2 + math.cos(deg) * self._center,
                     self._outer_radius - EMOTE_SIZE / 2 + math.sin(deg) * self._center,
@@ -300,8 +301,10 @@ class EmoteWheel(EmoteWheelBase):
             self._emote_separator_width,
         )
 
+        self._update_image()
+
     @property
-    def pos(self):
+    def pos(self) -> tuple[float, float]:
         return self._pos
 
     @pos.setter
@@ -313,27 +316,49 @@ class EmoteWheel(EmoteWheelBase):
         )
 
     @property
-    def visible(self):
-        return self._visible
+    def emote_index(self) -> int:
+        return self._emote_index
 
-    @visible.setter
-    def visible(self, value: bool):
-        if value:
-            self.z = Layer.TEXT_BOX
-            self._visible = True
-        else:
-            self.z = -1
-            self._visible = False
-
-    def toggle_visibility(self):
-        self.visible = not self.visible
-
-    def update(self, *args, **kwargs):
-        if self.z < 0 or self._last_emote_index == self.emote_index:
+    @emote_index.setter
+    def emote_index(self, value: int):
+        if self.emote_index == value:
             return
 
-        self._last_emote_index = self.emote_index
-        self._current_emote = self._emotes[self.emote_index % self.emotes_count]
+        self._emote_index = value
+
+        self._update_image()
+
+    @property
+    def is_open(self) -> bool:
+        return self._visible
+
+    @property
+    def current_emote(self) -> str:
+        return self._current_emote
+
+    def open(self):
+        self.z = Layer.TEXT_BOX
+        self._visible = True
+        post_event(EMOTE_WHEEL_OPEN)
+
+    def close(self):
+        self.z = -1
+        self._visible = False
+        post_event(EMOTE_WHEEL_CLOSE)
+
+    def toggle(self):
+        if self.is_open:
+            self.close()
+        else:
+            self.open()
+
+    def submit(self):
+        post_event(EMOTE_WHEEL_SUBMIT, emote=self._current_emote)
+
+    def _update_image(self):
+        self._current_emote = self.current_emote_selection[
+            self.emote_index % self.emotes_count
+        ]
 
         self.image = self._image.copy()
 
@@ -397,66 +422,20 @@ class EmoteWheel(EmoteWheelBase):
             thickness,
         )
 
-
-class PlayerEmoteManager(EmoteManager):
-    emote_wheel: EmoteWheel
-
-    __on_show_emote_funcs: list[Callable[[str], None]]
-    __on_emote_wheel_opened_funcs: list[Callable[[], None]]
-    __on_emote_wheel_closed_funcs: list[Callable[[], None]]
-
-    def __init__(
-        self,
-        emotes: dict[str, list[pygame.Surface]],
-        emotes_list: list[str],
-        *groups: PersistentSpriteGroup,
-    ):
-        super().__init__(emotes, *groups)
-
-        self.emote_wheel = EmoteWheel(self, emotes_list, *groups)
-
-        self.reset()
-
-    def reset(self):
-        self.__on_show_emote_funcs = []
-        self.__on_emote_wheel_opened_funcs = []
-        self.__on_emote_wheel_closed_funcs = []
-
-    def on_show_emote(self, func: Callable[[str], None]):
-        """
-        Attach the given function to the EmoteManager so that it is called when
-        show_emote is called.
-        """
-        self.__on_show_emote_funcs.append(func)
-
-    def show_emote(self, obj: object, emote: str):
-        super().show_emote(obj, emote)
-        for func in self.__on_show_emote_funcs:
-            func(emote)
-
-    def on_emote_wheel_opened(self, func: Callable[[], None]):
-        """
-        Attach the given function to the EmoteManager so that it is called when
-        the EmoteWheel is opened.
-        """
-        self.__on_emote_wheel_opened_funcs.append(func)
-
-    def on_emote_wheel_closed(self, func: Callable[[], None]):
-        """
-        Attach the given function to the EmoteManager so that it is called when
-        the EmoteWheel is closed.
-        """
-        self.__on_emote_wheel_closed_funcs.append(func)
-
-    def update_emote_wheel(self, pos: tuple[float, float]):
-        self.emote_wheel.pos = pos
-
-    def toggle_emote_wheel(self):
-        self.emote_wheel.toggle_visibility()
-
-        if self.emote_wheel.visible:
-            for func in self.__on_emote_wheel_opened_funcs:
-                func()
+    def _update_emote_selection(self):
+        if self._emote_selection_stack:
+            self.current_emote_selection = self._emote_selection_stack[-1]
         else:
-            for func in self.__on_emote_wheel_closed_funcs:
-                func()
+            self.current_emote_selection = self._default_emote_selection
+        self._setup_emote_selection()
+
+    def push_emote_selection(self, emotes: list[str]):
+        self._emote_selection_stack.append(emotes)
+        self._update_emote_selection()
+
+    def pop_emote_selection(self):
+        self._emote_selection_stack.pop()
+        self._update_emote_selection()
+
+    def update_pos(self, pos: tuple[float, float]):
+        self.pos = pos

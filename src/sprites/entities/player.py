@@ -9,7 +9,7 @@ from src import support
 from src.controls import Controls
 from src.enums import FarmingTool, InventoryResource, ItemToUse, StudyGroup
 from src.events import OPEN_INVENTORY, START_QUAKE, post_event
-from src.gui.interface.emotes import PlayerEmoteManager
+from src.gui.interface.emotes import EmoteManager
 from src.npc.bases.npc_base import NPCBase
 from src.savefile import SaveFile
 from src.settings import BATH_STATUS_TIMEOUT, Coordinate, SoundDict
@@ -46,7 +46,7 @@ class Player(Character):
         apply_tool: Callable[[FarmingTool, tuple[float, float], Character], None],
         plant_collision: Callable[[Character], None],
         interact: Callable[[], None],
-        emote_manager: PlayerEmoteManager,
+        emote_manager: EmoteManager,
         sounds: SoundDict,
         hp: int,
         bathstat: bool,
@@ -147,26 +147,8 @@ class Player(Character):
         self.current_tool = computed_value
 
     def handle_controls(self):
-        # the scripted sequence needs the emote_manager to work even when NPC is blocked"""
-        if self.emote_manager.emote_wheel.visible:
-            if self.controls.RIGHT.click:
-                self.emote_manager.emote_wheel.emote_index += 1
-
-            if self.controls.LEFT.click:
-                self.emote_manager.emote_wheel.emote_index -= 1
-
-            if self.controls.USE.click or self.controls.INTERACT.click:
-                self.emote_manager.show_emote(
-                    self, self.emote_manager.emote_wheel._current_emote
-                )
-                self.emote_manager.toggle_emote_wheel()
-
         # movement
-        if (
-            not self.tool_active
-            and not self.blocked
-            and not self.emote_manager.emote_wheel.visible
-        ):
+        if not self.tool_active and not self.blocked:
             self.direction.x = int(self.controls.RIGHT.hold) - int(
                 self.controls.LEFT.hold
             )
@@ -215,13 +197,6 @@ class Player(Character):
 
             if self.controls.DEBUG_QUAKE.click:
                 post_event(START_QUAKE, duration=2.0, debug=True)
-
-        # emotes
-        if not self.blocked:
-            if self.controls.EMOTE_WHEEL.click:
-                self.emote_manager.toggle_emote_wheel()
-                if self.emote_manager.emote_wheel.visible:
-                    self.direction = pygame.Vector2()
 
     def move(self, dt: float):
         self.hitbox_rect.update(
@@ -291,7 +266,6 @@ class Player(Character):
         self.emote_manager.update_obj(
             self, (self.rect.centerx - 47, self.rect.centery - 128)
         )
-        self.emote_manager.update_emote_wheel(self.rect.center)
 
     def update_blocked(self, dt):
         """the scripted sequence needs to display emote box even when Player is blocked"""
@@ -300,4 +274,3 @@ class Player(Character):
         self.emote_manager.update_obj(
             self, (self.rect.centerx - 47, self.rect.centery - 128)
         )
-        self.emote_manager.update_emote_wheel(self.rect.center)

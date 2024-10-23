@@ -66,7 +66,7 @@ class EmoteBoxBase(Sprite, ABC):
 EmoteBoxType = TypeVar("EmoteBoxType", bound=EmoteBoxBase)
 
 
-class EmoteManagerBase:
+class EmoteManagerBase(ABC):
     groups: tuple[pygame.sprite.Group, ...]
 
     emotes: dict[str, list[pygame.Surface]]
@@ -108,22 +108,23 @@ class EmoteManagerBase:
 
 class EmoteWheelBase(Sprite):
     """
-    Base class for the Player's emote wheel
+    Base class for the Player's emote selection wheel
 
     Attributes:
-        _emotes: Names of all emotes on the emote wheel.
-                 Should be a selection of keys from EmoteManagerBase.emotes
+        current_emote_selection: Names of all emotes on the emote wheel.
+        Should be a selection of keys from EmoteManagerBase.emotes
     """
 
-    visible: bool
+    _visible: bool
 
     _emote_manager: EmoteManagerBase
 
-    _emotes: list[str]
+    _default_emote_selection: list[str]
+    _emote_selection_stack: list[list[str]]
 
-    emote_index: int
-    _current_emote: str
-    _last_emote_index: int | None
+    current_emote_selection: list[str]
+
+    emotes_count: int
 
     _emote_separator_width: int
     _selected_emote_separator_width: int
@@ -131,30 +132,64 @@ class EmoteWheelBase(Sprite):
 
     _inner_radius: int
     _outer_radius: int
-    center: float
+    _center: float
 
     _image: pygame.Surface
 
     pos: tuple[float, float]
 
     @abstractmethod
-    def _setup_image(self):
+    def _setup_emote_selection(self):
         pass
 
     @property
     @abstractmethod
-    def pos(self):
+    def pos(self) -> tuple[float, float]:
         pass
 
     @property
     @abstractmethod
-    def visible(self):
+    def emote_index(self) -> int:
+        pass
+
+    @property
+    @abstractmethod
+    def is_open(self) -> bool:
+        pass
+
+    @property
+    @abstractmethod
+    def current_emote(self):
         pass
 
     @abstractmethod
-    def toggle_visibility(self):
+    def open(self):
         pass
 
     @abstractmethod
-    def update(self, *args, **kwargs):
+    def close(self):
+        pass
+
+    @abstractmethod
+    def toggle(self):
+        pass
+
+    @abstractmethod
+    def submit(self):
+        pass
+
+    @abstractmethod
+    def _update_image(self):
+        pass
+
+    @abstractmethod
+    def _update_emote_selection(self):
+        pass
+
+    @abstractmethod
+    def push_emote_selection(self, emotes: list[str]):
+        pass
+
+    @abstractmethod
+    def pop_emote_selection(self):
         pass

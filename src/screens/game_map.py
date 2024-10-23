@@ -20,7 +20,7 @@ from src.enums import (
 )
 from src.exceptions import GameMapWarning, InvalidMapError
 from src.groups import AllSprites, PersistentSpriteGroup
-from src.gui.interface.emotes import NPCEmoteManager, PlayerEmoteManager
+from src.gui.interface.emotes import EmoteManager
 from src.gui.scene_animation import SceneAnimation
 from src.map_objects import MapObjects, MapObjectType
 from src.npc.bases.animal import Animal
@@ -287,9 +287,8 @@ class GameMap:
         player_exit_warps: pygame.sprite.Group,
         # Player instance
         player: Player,
-        # Emote manager instances
-        player_emote_manager: PlayerEmoteManager,
-        npc_emote_manager: NPCEmoteManager,
+        # Emote manager instance
+        emote_manager: EmoteManager,
         # SoilLayer and Tool applying function for farming NPCs
         soil_manager: SoilManager,
         apply_tool: Callable[[FarmingTool, tuple[float, float], Character], None],
@@ -312,8 +311,7 @@ class GameMap:
 
         self.player = player
 
-        self.player_emote_manager = player_emote_manager
-        self.npc_emote_manager = npc_emote_manager
+        self.emote_manager = emote_manager
 
         self.soil_manager = soil_manager
         self.apply_tool = apply_tool
@@ -350,7 +348,6 @@ class GameMap:
             AIData.update(self._pf_matrix, self.player, [*self.npcs, *self.animals])
 
             if ENABLE_NPCS:
-                self._setup_emote_interactions()
                 _setup_animal_ranges(self.interaction_sprites, self.animals)
 
     @property
@@ -653,7 +650,7 @@ class GameMap:
             apply_tool=self.apply_tool,
             plant_collision=self.plant_collision,
             soil_manager=self.soil_manager,
-            emote_manager=self.npc_emote_manager,
+            emote_manager=self.emote_manager,
             tree_sprites=self.tree_sprites,
         )
         npc.teleport(pos)
@@ -860,37 +857,6 @@ class GameMap:
                     f"implemented! Layer {tilemap_layer.name} will be skipped",
                     GameMapWarning,
                 )
-
-    def _setup_emote_interactions(self):
-        self.player_emote_manager.reset()
-
-        @self.player_emote_manager.on_show_emote
-        def on_show_emote(emote: str):
-            if self.player.focused_entity:
-                npc = self.player.focused_entity
-                npc.abort_path()
-
-                self.npc_emote_manager.show_emote(npc, emote)
-
-        @self.player_emote_manager.on_emote_wheel_opened
-        def on_emote_wheel_opened():
-            player_pos = self.player.rect.center
-            distance_to_player = 5 * SCALED_TILE_SIZE
-            npc_to_focus = None
-            for npc in self.npcs:
-                current_distance = (
-                    (player_pos[0] - npc.rect.center[0]) ** 2
-                    + (player_pos[1] - npc.rect.center[1]) ** 2
-                ) ** 0.5
-                if current_distance < distance_to_player:
-                    distance_to_player = current_distance
-                    npc_to_focus = npc
-            if npc_to_focus:
-                self.player.focus_entity(npc_to_focus)
-
-        @self.player_emote_manager.on_emote_wheel_closed
-        def on_emote_wheel_closed():
-            self.player.unfocus_entity()
 
     def get_size(self):
         return self._tilemap_scaled_size
