@@ -14,10 +14,11 @@ class Sprite(pygame.sprite.Sprite):
         pos: tuple[int | float, int | float],
         surf: pygame.Surface,
         groups: tuple[pygame.sprite.Group, ...] | pygame.sprite.Group = None,
-        z: int = Layer.MAIN,
+        z: Layer = Layer.MAIN,
         name: str | None = None,
         custom_properties: dict[str, Any] | None = None,
     ):
+        self.z = z
         if groups:
             super().__init__(groups)
         else:
@@ -25,20 +26,37 @@ class Sprite(pygame.sprite.Sprite):
         self.surf = surf
         self.image = surf
         self.rect = self.image.get_frect(topleft=pos)
-        self.z = z
         self.name = name
         self.custom_properties: dict[str, Any] = custom_properties or {}
         self.hitbox_rect = self.rect.copy()
 
-    def draw(self, display_surface: pygame.Surface, rect: pygame.Rect, camera):
+    @property
+    def z(self):
+        return self._z
+
+    @z.setter
+    def z(self, value: Layer):
+        self._z = value
+        # TODO: Make emote wheel work again
+        """for group in self.groups():
+            group.change_layer(self, self._z)"""
+
+    def draw(self, display_surface: pygame.Surface, rect: tuple[float, float], camera):
         display_surface.blit(self.image, rect)
+
+    def add(self, *groups: Any):
+        for group in groups:
+            if not (hasattr(group, "_spritegroup") and isinstance(group, tuple)):
+                group.add(self)
+            else:
+                super().add(group)
 
 
 class CollideableSprite(Sprite, ABC):
     hitbox_rect: pygame.FRect
 
 
-class CollideableMapObject(CollideableSprite):
+class CollideableMapObject(Sprite):
     def __init__(
         self,
         pos: tuple[int, int],
