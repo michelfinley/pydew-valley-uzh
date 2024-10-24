@@ -158,7 +158,7 @@ class AllSprites:
 
     def update_blocked(self, dt: float):
         for sprite in self:
-            getattr(sprite, "update_blocked", sprite.update)(dt)  # noqa
+            sprite.update_blocked(dt)
 
     def draw(self, camera: Camera):
         for layer in self.layers.values():
