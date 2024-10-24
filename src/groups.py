@@ -44,14 +44,10 @@ class PersistentSpriteGroup(pygame.sprite.Group):
 
 
 class RenderLayer:
-    layer: Layer
-
     _sprite_list: list[Sprite]
     _persistent_sprite_list: list[Sprite]
 
-    def __init__(self, layer: Layer):
-        self.layer = layer
-
+    def __init__(self):
         self._sprite_list = []
         self._persistent_sprite_list = []
 
@@ -88,6 +84,8 @@ class RenderLayer:
         for sprite in sprites:
             if sprite in self:
                 self._sprite_list.remove(sprite)
+            if sprite in self._persistent_sprite_list:
+                self._persistent_sprite_list.remove(sprite)
 
     def update(self, *args, **kwargs):
         for sprite in self:
@@ -112,11 +110,11 @@ class RenderLayer:
 
 class AllSprites:
     display_surface: pygame.Surface
-    layers: list[RenderLayer]
+    layers: dict[Layer, RenderLayer]
 
     def __init__(self, *sprites):
         self.display_surface = pygame.display.get_surface()
-        self.layers = [RenderLayer(i) for i in Layer]
+        self.layers = {i: RenderLayer() for i in Layer}
 
         self.add(*sprites)
 
@@ -124,7 +122,7 @@ class AllSprites:
         return next(self.sprites(), False)
 
     def __contains__(self, sprite: Sprite):
-        for layer in self.layers:
+        for layer in self.layers.values():
             if sprite in layer:
                 return True
 
@@ -132,13 +130,13 @@ class AllSprites:
         return self.sprites()
 
     def __len__(self):
-        return sum(len(layer) for layer in self.layers)
+        return sum(len(layer) for layer in self.layers.values())
 
     def __repr__(self):
         return f"<{self.__class__.__name__}({len(self)} sprites)>"
 
     def sprites(self) -> Generator[Sprite, None, None]:
-        for layer in self.layers:
+        for layer in self.layers.values():
             for sprite in layer:
                 yield sprite
 
@@ -155,7 +153,7 @@ class AllSprites:
             self.layers[sprite.z].remove(sprite)
 
     def update(self, *args, **kwargs):
-        for layer in self.layers:
+        for layer in self.layers.values():
             layer.update(*args, **kwargs)
 
     def update_blocked(self, dt: float):
@@ -163,13 +161,25 @@ class AllSprites:
             getattr(sprite, "update_blocked", sprite.update)(dt)  # noqa
 
     def draw(self, camera: Camera):
-        for layer in self.layers:
+        for layer in self.layers.values():
             layer.draw(self.display_surface, camera)
 
     def empty(self):
-        for layer in self.layers:
+        for layer in self.layers.values():
             layer.empty()
 
     def empty_persistent(self):
-        for layer in self.layers:
+        for layer in self.layers.values():
             layer.empty_persistent()
+
+    def change_layer(self, sprite: Sprite, z: Layer, add_persistent: bool = False):
+        if sprite.z in self.layers:
+            self.layers[sprite.z].remove(sprite)
+
+        if z in self.layers:
+            if add_persistent:
+                self.layers[z].add_persistent(sprite)
+            else:
+                self.layers[z].add(sprite)
+
+        sprite._z = z

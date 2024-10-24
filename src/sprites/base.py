@@ -18,7 +18,7 @@ class Sprite(pygame.sprite.Sprite):
         name: str | None = None,
         custom_properties: dict[str, Any] | None = None,
     ):
-        self.z = z
+        self._z = z
         if groups:
             super().__init__(groups)
         else:
@@ -34,22 +34,15 @@ class Sprite(pygame.sprite.Sprite):
     def z(self):
         return self._z
 
-    @z.setter
-    def z(self, value: Layer):
-        self._z = value
-        # TODO: Make emote wheel work again
-        """for group in self.groups():
-            group.change_layer(self, self._z)"""
-
     def draw(self, display_surface: pygame.Surface, rect: tuple[float, float], camera):
         display_surface.blit(self.image, rect)
 
     def add(self, *groups: Any):
         for group in groups:
-            if not (hasattr(group, "_spritegroup") and isinstance(group, tuple)):
+            if not hasattr(group, "_spritegroup") and not isinstance(group, tuple):
                 group.add(self)
             else:
-                super().add(group)
+                super().add(group)  # noqa
 
 
 class CollideableSprite(Sprite, ABC):
