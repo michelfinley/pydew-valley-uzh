@@ -874,7 +874,6 @@ class Level:
     # endregion
 
     def draw_overlay(self):
-        self.sky.display(self.get_round())
         self.overlay.display()
 
     def draw(self, dt: float, move_things: bool):
