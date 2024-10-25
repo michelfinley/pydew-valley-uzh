@@ -72,13 +72,13 @@ class RenderLayer:
             yield sprite
 
     def add(self, sprite: Sprite):
-        if not sprite in self:
+        if sprite not in self:
             self._sprite_list.append(sprite)
         sprite.add_to_layer(self)
 
     def add_persistent(self, sprite: Sprite):
         self.add(sprite)
-        if not sprite in self._persistent_sprite_list:
+        if sprite not in self._persistent_sprite_list:
             self._persistent_sprite_list.append(sprite)
 
     def remove(self, *sprites: Sprite):

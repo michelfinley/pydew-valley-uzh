@@ -7,7 +7,7 @@ import pygame.gfxdraw
 
 from src.colors import SL_ORANGE_BRIGHT, SL_ORANGE_BRIGHTEST, SL_ORANGE_DARK
 from src.enums import Layer
-from src.groups import PersistentSpriteGroup, AllSprites
+from src.groups import AllSprites, PersistentSpriteGroup
 from src.gui.interface.emotes_base import EmoteBoxBase, EmoteManagerBase, EmoteWheelBase
 from src.settings import EMOTE_SIZE
 from src.support import draw_aa_line
