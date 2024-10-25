@@ -751,7 +751,7 @@ class GameMap:
                         lambda pos, image: self._setup_collideable_tile(
                             pos,
                             image,
-                            Layer.BORDER,
+                            Layer.MAIN,
                             (
                                 self.all_sprites,
                                 self.collision_sprites,
