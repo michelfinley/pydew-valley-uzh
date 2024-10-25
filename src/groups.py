@@ -89,9 +89,9 @@ class RenderLayer:
                 self._persistent_sprite_list.remove(sprite)
             sprite.remove_from_layer()
 
-    def update(self, *args, **kwargs):
+    def update(self, dt: float):
         for sprite in self:
-            sprite.update(*args, **kwargs)
+            sprite.update(dt)
 
     def draw(self, surface: pygame.Surface, camera: Camera):
         self._sprite_list.sort(key=lambda spr: spr.hitbox_rect.bottom)
@@ -104,7 +104,9 @@ class RenderLayer:
             getattr(sprite, "update_blocked", sprite.update)(dt)  # noqa
 
     def empty(self):
-        self.remove(*set(self._sprite_list).symmetric_difference(self._persistent_sprite_list))
+        self.remove(
+            *set(self._sprite_list).symmetric_difference(self._persistent_sprite_list)
+        )
 
     def empty_persistent(self):
         self.remove(*self._sprite_list)
@@ -154,9 +156,9 @@ class AllSprites:
         for sprite in sprites:
             self.layers[sprite.z].remove(sprite)
 
-    def update(self, *args, **kwargs):
+    def update(self, dt: float):
         for layer in self.layers.values():
-            layer.update(*args, **kwargs)
+            layer.update(dt)
 
     def update_blocked(self, dt: float):
         for sprite in self:
