@@ -1,4 +1,5 @@
 import copy
+import json
 import random
 import time
 import warnings
@@ -496,6 +497,10 @@ class Level:
             if event.key == pygame.K_ESCAPE:
                 self.switch_screen(GameState.PAUSE)
                 return True
+            elif event.key == pygame.K_y:
+                with open("fps_sample.json", "w+") as file:
+                    json.dump(self.overlay.FPS.fps_sample, file)
+                print("FPS Sample saved")
             self.controls.update_control_state(event.key, True)
         elif event.type == pygame.KEYUP:
             self.controls.update_control_state(event.key, False)
@@ -913,6 +918,7 @@ class Level:
             self.current_minigame.update(dt)
 
         self.update_rain()
+        self.overlay.update(dt)
         self.day_transition.update()
         self.map_transition.update()
         if move_things:

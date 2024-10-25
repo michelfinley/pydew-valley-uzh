@@ -27,7 +27,11 @@ class Overlay:
         self.clock = Clock(game_time, ClockVersion.DIGITAL)
         self.FPS = FPS(clock)
 
+    def update(self, dt: float):
+        self.FPS.update(dt)
+
     def display(self):
+        self.FPS.display()
         if not self.visible:
             return
 
