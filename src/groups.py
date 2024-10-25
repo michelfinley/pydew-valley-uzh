@@ -74,6 +74,7 @@ class RenderLayer:
     def add(self, sprite: Sprite):
         if not sprite in self:
             self._sprite_list.append(sprite)
+        sprite.add_to_layer(self)
 
     def add_persistent(self, sprite: Sprite):
         self.add(sprite)
@@ -86,6 +87,7 @@ class RenderLayer:
                 self._sprite_list.remove(sprite)
             if sprite in self._persistent_sprite_list:
                 self._persistent_sprite_list.remove(sprite)
+            sprite.remove_from_layer()
 
     def update(self, *args, **kwargs):
         for sprite in self:

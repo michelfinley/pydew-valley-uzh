@@ -18,6 +18,8 @@ class Sprite(pygame.sprite.Sprite):
         name: str | None = None,
         custom_properties: dict[str, Any] | None = None,
     ):
+        self.__render_layer = None
+
         self._z = z
         if groups:
             super().__init__(groups)
@@ -40,12 +42,23 @@ class Sprite(pygame.sprite.Sprite):
     def draw(self, display_surface: pygame.Surface, rect: tuple[float, float], camera):
         display_surface.blit(self.image, rect)
 
+    def add_to_layer(self, render_layer):
+        self.__render_layer = render_layer
+
+    def remove_from_layer(self):
+        self.__render_layer = None
+
     def add(self, *groups: Any):
         for group in groups:
             if not hasattr(group, "_spritegroup") and not isinstance(group, tuple):
                 group.add(self)
             else:
                 super().add(group)  # noqa
+
+    def kill(self):
+        super().kill()
+        if self.__render_layer:
+            self.__render_layer.remove(self)
 
 
 class CollideableSprite(Sprite, ABC):
