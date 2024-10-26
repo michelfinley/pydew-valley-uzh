@@ -142,9 +142,10 @@ class CowHerding(Minigame):
                 cow = Cow(
                     pos=pos,
                     assets=ENTITY_ASSETS.COW,
-                    groups=(self._state.all_sprites, self._state.collision_sprites),
+                    groups=(self._state.collision_sprites,),
                     collision_sprites=self._state.collision_sprites,
                 )
+                self._state.all_sprites.add(cow)
                 self._state.game_map.animals.append(cow)
                 if obj.name == "L_COW":
                     cow.conditional_behaviour_tree = CowHerdingBehaviourTree.WanderRange

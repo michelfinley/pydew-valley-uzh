@@ -474,12 +474,13 @@ class GameMap:
             tree = Tree(
                 pos,
                 object_type,
-                (self.all_sprites, self.collision_sprites, self.tree_sprites),
+                (self.collision_sprites, self.tree_sprites),
                 obj.name,
                 fruit_frames,
                 fruit_type,
                 stump_frames,
             )
+            self.all_sprites.add(tree)
             # we need a tree surf without fruits
             tree.image = self.frames["level"]["objects"]["tree"]
             tree.surf = tree.image
@@ -505,7 +506,6 @@ class GameMap:
                 pos,
                 object_type,
                 (
-                    self.all_sprites,
                     self.collision_sprites,
                     self.bush_sprites,
                     self.interaction_sprites,
@@ -514,6 +514,7 @@ class GameMap:
                 fruit_frames,
                 fruit_type,
             )
+            self.all_sprites.add(bush)
             # we need a bush surf without fruits
             bush.image = self.frames["level"]["objects"]["bush_medium"]
             bush.surf = bush.image
@@ -647,7 +648,7 @@ class GameMap:
         npc = NPC(
             pos=pos,
             assets=copy.deepcopy(ENTITY_ASSETS.RABBIT),
-            groups=(self.all_sprites, self.collision_sprites),
+            groups=(self.collision_sprites,),
             collision_sprites=self.collision_sprites,
             study_group=study_group,
             apply_tool=self.apply_tool,
@@ -656,6 +657,7 @@ class GameMap:
             emote_manager=self.npc_emote_manager,
             tree_sprites=self.tree_sprites,
         )
+        self.all_sprites.add(npc)
         npc.teleport(pos)
 
         # Ingroup NPCs wearing only the hat and no necklace should not be able to walk on the forest and town map, only on the farming map
@@ -687,17 +689,19 @@ class GameMap:
             animal = Chicken(
                 pos=pos,
                 assets=ENTITY_ASSETS.CHICKEN,
-                groups=(self.all_sprites, self.collision_sprites),
+                groups=(self.collision_sprites,),
                 collision_sprites=self.collision_sprites,
             )
+            self.all_sprites.add(animal)
             animal.conditional_behaviour_tree = ChickenBehaviourTree.Wander
         elif obj.name == "Cow":
             animal = Cow(
                 pos=pos,
                 assets=ENTITY_ASSETS.COW,
-                groups=(self.all_sprites, self.collision_sprites),
+                groups=(self.collision_sprites,),
                 collision_sprites=self.collision_sprites,
             )
+            self.all_sprites.add(animal)
             animal.conditional_behaviour_tree = CowConditionalBehaviourTree.Wander
             # animal.continuous_behaviour_tree = CowContinuousBehaviourTree.Flee
 

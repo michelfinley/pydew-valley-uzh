@@ -18,7 +18,7 @@ class Sprite(pygame.sprite.Sprite):
         name: str | None = None,
         custom_properties: dict[str, Any] | None = None,
     ):
-        self.__render_layer = None
+        self.__render_chunk = None
 
         self._z = z
         if groups:
@@ -36,17 +36,21 @@ class Sprite(pygame.sprite.Sprite):
             self.update_blocked = self.update
 
     @property
+    def render_chunk(self):
+        return self.__render_chunk
+
+    @property
     def z(self):
         return self._z
 
     def draw(self, display_surface: pygame.Surface, rect: tuple[float, float], camera):
         display_surface.blit(self.image, rect)
 
-    def add_to_layer(self, render_layer):
-        self.__render_layer = render_layer
+    def add_to_chunk(self, render_layer):
+        self.__render_chunk = render_layer
 
-    def remove_from_layer(self):
-        self.__render_layer = None
+    def remove_from_chunk(self):
+        self.__render_chunk = None
 
     def add(self, *groups: Any):
         for group in groups:
@@ -57,8 +61,12 @@ class Sprite(pygame.sprite.Sprite):
 
     def kill(self):
         super().kill()
-        if self.__render_layer:
-            self.__render_layer.remove(self)
+        if self.__render_chunk:
+            self.__render_chunk.remove(self)
+
+
+class MovingSprite(Sprite, ABC):
+    pass
 
 
 class CollideableSprite(Sprite, ABC):

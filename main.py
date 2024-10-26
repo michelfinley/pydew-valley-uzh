@@ -301,7 +301,7 @@ class Game:
                         self.fast_forward.draw_overlay(self.display_surface)
             else:
                 self.all_sprites.update(dt)
-            self.all_sprites.draw(self.level.camera)
+            self.all_sprites.draw(self.level.camera, self.level.player.rect.center)
 
             # Apply blur effect only if the player has goggles equipped
             if self.player.has_goggles and self.current_state == GameState.PLAY:

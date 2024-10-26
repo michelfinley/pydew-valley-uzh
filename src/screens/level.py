@@ -879,7 +879,7 @@ class Level:
     def draw(self, dt: float, move_things: bool):
         self.player.hp = self.overlay.health_bar.hp
         self.display_surface.fill((130, 168, 132))
-        self.all_sprites.draw(self.camera)
+        self.all_sprites.draw(self.camera, self.player.rect.center)
         if self.zoom_manager.zoom_factor:
             self.zoom_manager.apply_zoom()
         if move_things:

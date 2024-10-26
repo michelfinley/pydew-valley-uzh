@@ -371,8 +371,9 @@ class SoilArea:
 
             seed_name = seed_type.as_plant_name()
             frames = self.level_frames[seed_name]
-            groups = (self.all_sprites, self.plant_sprites)
+            groups = (self.plant_sprites,)
             tile.plant = Plant(seed_type, groups, tile, frames)
+            self.all_sprites.add(tile.plant)
             return True
 
         return False

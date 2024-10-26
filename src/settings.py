@@ -20,6 +20,11 @@ CHAR_TILE_SIZE = 48
 SCALE_FACTOR = 4
 SCALED_TILE_SIZE = TILE_SIZE * SCALE_FACTOR
 
+# chunk size determined by (screen_size / 2) + largest_obj_size, with the largest
+# object being the piknik blanket / rabbit character (48x48px)
+CHUNK_W = (SCREEN_WIDTH / 2) + (48 * SCALE_FACTOR)
+CHUNK_H = (SCREEN_HEIGHT / 2) + (48 * SCALE_FACTOR)
+
 RANDOM_SEED = 123456789
 
 GAME_MAP = Map.NEW_FARM
