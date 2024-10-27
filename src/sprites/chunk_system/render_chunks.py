@@ -50,7 +50,7 @@ class RenderLayer(SpriteLayer):
             getattr(sprite, "update_blocked", sprite.update)(dt)  # noqa
 
     def on_sprite_exit_chunk(self, sprite: Sprite):
-        sprite.collision_chunk.remove(sprite)
+        sprite.render_chunk.remove(sprite)
         self.get_sprite_chunk(sprite).add(sprite)  # TODO: add_persistent
 
 
