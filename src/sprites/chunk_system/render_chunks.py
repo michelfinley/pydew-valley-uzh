@@ -29,7 +29,7 @@ class RenderChunk(SpriteChunk):
 
     def update_blocked(self, dt: float):
         for sprite in self._sprites:
-            getattr(sprite, "update_blocked", sprite.update)(dt)  # noqa
+            sprite.update_blocked(dt)  # noqa
 
 
 class RenderLayer(SpriteLayer):
@@ -51,7 +51,7 @@ class RenderLayer(SpriteLayer):
 
     def update_blocked(self, dt: float):
         for sprite in self:
-            getattr(sprite, "update_blocked", sprite.update)(dt)  # noqa
+            sprite.update_blocked(dt)  # noqa
 
     def on_sprite_exit_chunk(self, sprite: Sprite):
         if sprite.render_chunk.remove(sprite):
