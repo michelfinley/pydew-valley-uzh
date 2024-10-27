@@ -46,7 +46,6 @@ class Overlay:
         self.display_surface.blit(tool_surf, tool_rect)
 
         self.clock.display()
-        self.FPS.display()
 
         # health bar
         self.health_bar.draw(self.display_surface)
