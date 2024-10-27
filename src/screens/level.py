@@ -17,7 +17,8 @@ from src.controls import Controls
 from src.enums import FarmingTool, GameState, Map, ScriptedSequenceType, StudyGroup
 from src.events import DIALOG_ADVANCE, DIALOG_SHOW, START_QUAKE, post_event
 from src.exceptions import GameMapWarning
-from src.groups import AllSprites, PersistentSpriteGroup
+from src.groups import PersistentSpriteGroup
+from src.sprites.chunk_system.render_chunks import AllSprites
 from src.gui.interface.emotes import NPCEmoteManager, PlayerEmoteManager
 from src.gui.scene_animation import SceneAnimation
 from src.npc.npc import NPC
@@ -44,6 +45,7 @@ from src.settings import (
     SoundDict,
 )
 from src.sprites.base import Sprite
+from src.sprites.chunk_system.collision_chunks import CollisionManager
 from src.sprites.entities.character import Character
 from src.sprites.entities.player import Player
 from src.sprites.particle import ParticleSprite
@@ -70,7 +72,7 @@ class Level:
 
     # sprite groups
     all_sprites: AllSprites
-    collision_sprites: PersistentSpriteGroup
+    collision_manager: CollisionManager
     tree_sprites: PersistentSpriteGroup
     bush_sprites: PersistentSpriteGroup
     interaction_sprites: PersistentSpriteGroup
@@ -137,7 +139,7 @@ class Level:
         self.game_map = None
 
         self.all_sprites = AllSprites()
-        self.collision_sprites = PersistentSpriteGroup()
+        self.collision_manager = CollisionManager()
         self.tree_sprites = PersistentSpriteGroup()
         self.bush_sprites = PersistentSpriteGroup()
         self.interaction_sprites = PersistentSpriteGroup()
@@ -167,7 +169,7 @@ class Level:
             pos=(0, 0),
             assets=copy.deepcopy(ENTITY_ASSETS.RABBIT),
             groups=(),
-            collision_sprites=self.collision_sprites,
+            collision_manager=self.collision_manager,
             controls=self.controls,
             apply_tool=self.apply_tool,
             plant_collision=self.plant_collision,
@@ -181,7 +183,7 @@ class Level:
         )
         self.prev_player_pos = (0, 0)
         self.all_sprites.add_persistent(self.player)
-        self.collision_sprites.add_persistent(self.player)
+        self.collision_manager.add_persistent(self.player)
 
         # weather
         self.game_time = GameTime()
@@ -228,7 +230,7 @@ class Level:
         # prepare level state for new map
         # clear all sprite groups
         self.all_sprites.empty()
-        self.collision_sprites.empty()
+        self.collision_manager.empty()
         self.interaction_sprites.empty()
         self.tree_sprites.empty()
         self.bush_sprites.empty()
@@ -244,7 +246,7 @@ class Level:
             scene_ani=self.cutscene_animation,
             zoom_man=self.zoom_manager,
             all_sprites=self.all_sprites,
-            collision_sprites=self.collision_sprites,
+            collision_manager=self.collision_manager,
             interaction_sprites=self.interaction_sprites,
             tree_sprites=self.tree_sprites,
             bush_sprites=self.bush_sprites,
@@ -319,7 +321,7 @@ class Level:
                     game_map=self.game_map,
                     player=self.player,
                     all_sprites=self.all_sprites,
-                    collision_sprites=self.collision_sprites,
+                    collision_manager=self.collision_manager,
                     overlay=self.overlay,
                     sounds=self.sounds,
                 )
@@ -797,7 +799,7 @@ class Level:
         if self.show_hitbox_active:
             offset = pygame.Vector2(self.get_camera_pos())
 
-            for sprite in self.collision_sprites:
+            for sprite in self.collision_manager:
                 rect = sprite.rect.copy()
                 rect.topleft += offset
                 pygame.draw.rect(self.display_surface, "red", rect, 2)
@@ -944,6 +946,7 @@ class Level:
             )
 
             self.decay_health()
+        self.collision_manager.update()
         self.draw(dt, move_things)
 
         for control in self.controls:

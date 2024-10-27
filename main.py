@@ -15,7 +15,7 @@ import pygame
 from src import support
 from src.enums import GameState
 from src.events import DIALOG_ADVANCE, DIALOG_SHOW, OPEN_INVENTORY
-from src.groups import AllSprites
+from src.sprites.chunk_system.render_chunks import AllSprites
 from src.gui.interface.dialog import DialogueManager
 from src.gui.setup import setup_gui
 from src.overlay.fast_forward import FastForward

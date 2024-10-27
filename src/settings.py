@@ -22,8 +22,13 @@ SCALED_TILE_SIZE = TILE_SIZE * SCALE_FACTOR
 
 # chunk size determined by (screen_size / 2) + largest_obj_size, with the largest
 # object being the piknik blanket / rabbit character (48x48px)
-CHUNK_W = (SCREEN_WIDTH / 2) + (48 * SCALE_FACTOR)
-CHUNK_H = (SCREEN_HEIGHT / 2) + (48 * SCALE_FACTOR)
+RENDER_CHUNK_W = (SCREEN_WIDTH / 2) + (48 * SCALE_FACTOR)
+RENDER_CHUNK_H = (SCREEN_HEIGHT / 2) + (48 * SCALE_FACTOR)
+
+# chunk size = largest_hitbox_size
+# tree_fallen_medium + bed (32x19px) -> 32x32 to reduce map collider count
+COLLISION_CHUNK_W = 32 * SCALE_FACTOR
+COLLISION_CHUNK_H = 32 * SCALE_FACTOR
 
 RANDOM_SEED = 123456789
 

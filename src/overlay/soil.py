@@ -5,7 +5,7 @@ import pygame
 from pytmx import TiledTileLayer
 
 from src.enums import FarmingTool, InventoryResource, Layer, SeedType, StudyGroup
-from src.groups import AllSprites
+from src.sprites.chunk_system.render_chunks import AllSprites
 from src.savefile.tile_info import TileInfo
 from src.settings import SCALED_TILE_SIZE, Coordinate
 from src.sprites.base import Sprite

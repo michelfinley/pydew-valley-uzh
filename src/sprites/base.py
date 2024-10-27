@@ -19,6 +19,7 @@ class Sprite(pygame.sprite.Sprite):
         custom_properties: dict[str, Any] | None = None,
     ):
         self.__render_chunk = None
+        self.__collision_chunk = None
 
         self._z = z
         if groups:
@@ -40,17 +41,27 @@ class Sprite(pygame.sprite.Sprite):
         return self.__render_chunk
 
     @property
+    def collision_chunk(self):
+        return self.__collision_chunk
+
+    @property
     def z(self):
         return self._z
 
     def draw(self, display_surface: pygame.Surface, rect: tuple[float, float], camera):
         display_surface.blit(self.image, rect)
 
-    def add_to_chunk(self, render_layer):
-        self.__render_chunk = render_layer
+    def add_to_render_chunk(self, render_chunk):
+        self.__render_chunk = render_chunk
 
-    def remove_from_chunk(self):
+    def remove_from_render_chunk(self):
         self.__render_chunk = None
+
+    def add_to_collision_chunk(self, collision_chunk):
+        self.__collision_chunk = collision_chunk
+
+    def remove_from_collision_chunk(self):
+        self.__collision_chunk = None
 
     def add(self, *groups: Any):
         for group in groups:
@@ -63,14 +74,24 @@ class Sprite(pygame.sprite.Sprite):
         super().kill()
         if self.__render_chunk:
             self.__render_chunk.remove(self)
+        if self.__collision_chunk:
+            self.__collision_chunk.remove(self)
 
 
 class MovingSprite(Sprite, ABC):
+    def __init__(
+            self,
+            pos: tuple[int | float, int | float],
+            surf: pygame.Surface,
+            groups: tuple[pygame.sprite.Group, ...] | pygame.sprite.Group = None,
+            z: Layer = Layer.MAIN,
+            name: str | None = None,
+            custom_properties: dict[str, Any] | None = None,
+    ):
+        super().__init__(pos, surf, groups, z, name, custom_properties)
+        self.last_hitbox_rect = self.hitbox_rect.copy()
+
     pass
-
-
-class CollideableSprite(Sprite, ABC):
-    hitbox_rect: pygame.FRect
 
 
 class CollideableMapObject(Sprite):
