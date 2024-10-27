@@ -13,10 +13,10 @@ class CollisionChunk(SpriteChunk):
         super().add(sprite)
         sprite.add_to_collision_chunk(self)
 
-    def remove(self, *sprites: Sprite):
-        super().remove(*sprites)
-        for sprite in sprites:
-            sprite.remove_from_collision_chunk()
+    def remove(self, sprite: Sprite):
+        ret = super().remove(sprite)
+        sprite.remove_from_collision_chunk()
+        return ret
 
 
 class CollisionManager(SpriteManager):
@@ -41,8 +41,10 @@ class CollisionManager(SpriteManager):
         super().update()
 
     def on_sprite_exit_chunk(self, sprite: Sprite):
-        sprite.collision_chunk.remove(sprite)
-        self.get_sprite_chunk(sprite).add(sprite)  # TODO: add_persistent
+        if sprite.collision_chunk.remove(sprite):
+            self.get_sprite_chunk(sprite).add_persistent(sprite)
+        else:
+            self.get_sprite_chunk(sprite).add(sprite)
 
     def get_chunk(self, pos: tuple[int, int]):
         return self._containers[pos]

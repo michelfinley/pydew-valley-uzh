@@ -16,10 +16,10 @@ class RenderChunk(SpriteChunk):
         super().add(sprite)
         sprite.add_to_render_chunk(self)
 
-    def remove(self, *sprites: Sprite):
-        super().remove(*sprites)
-        for sprite in sprites:
-            sprite.remove_from_render_chunk()
+    def remove(self, sprite: Sprite):
+        ret = super().remove(sprite)
+        sprite.remove_from_render_chunk()
+        return ret
 
     def update(self, dt: float):
         for sprite in self:
@@ -50,8 +50,10 @@ class RenderLayer(SpriteLayer):
             getattr(sprite, "update_blocked", sprite.update)(dt)  # noqa
 
     def on_sprite_exit_chunk(self, sprite: Sprite):
-        sprite.render_chunk.remove(sprite)
-        self.get_sprite_chunk(sprite).add(sprite)  # TODO: add_persistent
+        if sprite.render_chunk.remove(sprite):
+            self.get_sprite_chunk(sprite).add_persistent(sprite)
+        else:
+            self.get_sprite_chunk(sprite).add(sprite)
 
 
 class AllSprites(SpriteManager):

@@ -55,14 +55,17 @@ class SpriteChunk:
         if sprite not in self._persistent_sprites:
             self._persistent_sprites.append(sprite)
 
-    def remove(self, *sprites: Sprite):
-        for sprite in sprites:
-            if sprite in self._sprites:
-                self._sprites.remove(sprite)
-            if sprite in self._persistent_sprites:
-                self._persistent_sprites.remove(sprite)
-            if sprite in self._moving_sprites:
-                self._moving_sprites.remove(sprite)
+    def remove(self, sprite: Sprite) -> bool:
+        """:return: Whether the removed sprite was a persistent sprite"""
+        ret = False
+        if sprite in self._sprites:
+            self._sprites.remove(sprite)
+        if sprite in self._persistent_sprites:
+            self._persistent_sprites.remove(sprite)
+            ret = True
+        if sprite in self._moving_sprites:
+            self._moving_sprites.remove(sprite)
+        return ret
 
     def sprite_in_chunk(self, sprite: Sprite) -> bool:
         return (int(sprite.rect.left / self._size[0]) == self._pos[0] and
@@ -78,12 +81,12 @@ class SpriteChunk:
             self._on_sprite_exit_chunk(sprite)
 
     def empty(self):
-        self.remove(
-            *set(self._sprites).symmetric_difference(self._persistent_sprites)
-        )
+        for sprite in set(self._sprites).symmetric_difference(self._persistent_sprites):
+            self.remove(sprite)
 
     def empty_persistent(self):
-        self.remove(*self._sprites)
+        for sprite in self._sprites:
+            self.remove(sprite)
 
 
 _CT = TypeVar("_CT", bound=SpriteChunk)
