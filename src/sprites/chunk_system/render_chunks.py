@@ -5,7 +5,7 @@ import pygame
 from src.camera import Camera
 from src.enums import Layer
 
-from src.settings import RENDER_CHUNK_W, RENDER_CHUNK_H
+from src.settings import RENDER_CHUNK_W, RENDER_CHUNK_H, RENDER_CHUNKS_X, RENDER_CHUNKS_Y
 from src.sprites.base import Sprite
 from src.sprites.chunk_system.sprite_manager import SpriteChunk, SpriteLayer, \
     SpriteManager
@@ -22,23 +22,27 @@ class RenderChunk(SpriteChunk):
         return ret
 
     def update(self, dt: float):
-        for sprite in self:
+        for sprite in self._sprites:
             sprite.update(dt)
 
         super().update()
 
     def update_blocked(self, dt: float):
-        for sprite in self:
+        for sprite in self._sprites:
             getattr(sprite, "update_blocked", sprite.update)(dt)  # noqa
 
 
 class RenderLayer(SpriteLayer):
     def draw(self, surface: pygame.Surface, camera: Camera, center: tuple[float, float]):
         sprites = []
-        center_chunk = int(center[0] / RENDER_CHUNK_W), int(center[1] / RENDER_CHUNK_H)
-        for i in range(center_chunk[0] - 1, center_chunk[0] + 2):
-            for j in range(center_chunk[1] - 1, center_chunk[1] + 2):
-                for sprite in self.get_chunk((i, j)):
+        center_chunk = center[0] / RENDER_CHUNK_W, center[1] / RENDER_CHUNK_H
+        topleft_chunk = (
+            int(center_chunk[0] - ((RENDER_CHUNKS_X - 3) / 2 + 1)),
+            int(center_chunk[1] - ((RENDER_CHUNKS_Y - 3) / 2 + 1))
+        )
+        for i in range(topleft_chunk[0], topleft_chunk[0] + RENDER_CHUNKS_X):
+            for j in range(topleft_chunk[1], topleft_chunk[1] + RENDER_CHUNKS_Y):
+                for sprite in self._chunks[(i, j)]:
                     sprites.append(sprite)
         sprites.sort(key=lambda spr: spr.hitbox_rect.bottom)
 
